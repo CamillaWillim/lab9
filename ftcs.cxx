@@ -10,7 +10,7 @@ void writeToFile(const double* const u, const string s, const double dx,
                  const double xmin, const int N);
 void initialize(double* const u, const double dx, const double xmin,
                 const int N);
-void rupwind(double* u1,double* u0,const double dx,double dt,const double V,const int N);
+void ftcs(double* u1,double* u0,const double dx,double dt,const double V,const int N);
 //---------------------------------------
 int main(){
 
@@ -21,7 +21,7 @@ int main(){
   const double xmin = -10;
   const double xmax =  10;
   const double dx = (xmax-xmin)/(N-1);
-  double dt =  0.5*dx/V;
+  double dt =  dx/V;
   const int Na = 10; // Number of output files up to tEnd
   const int Nk = int(tEnd/Na/dt);
 
@@ -33,13 +33,13 @@ int main(){
 
   initialize(u0,dx, xmin,N);
 
-  writeToFile(u0, "u_0", dx, xmin, N);
+  writeToFile(u0, "uf_0", dx, xmin, N);
 
   for(int i=1; i<=Na; i++)
   {
    for(int j=0; j<Nk; j++){
 
-      rupwind(u1,u0,dx,dt,V,N);// Put call to step function here
+      ftcs(u1,u0,dx,dt,V,N);// Put call to step function here
      
       h = u1;
       u1 = u0;
@@ -48,7 +48,7 @@ int main(){
       // however do not copy values, be more clever ;)
    }
    strm.str("");
-   strm << "u_" << i;
+   strm << "uf_" << i;
    writeToFile(u0, strm.str(), dx, xmin, N);
   }
 
@@ -85,11 +85,11 @@ void writeToFile(const double* const u, const string s, const double dx,
 }
 
 
-void rupwind(double* u1,double* u0,const double dx, double dt,const double V,const int N){
+void ftcs(double* u1,double* u0,const double dx, double dt,const double V,const int N){
   
   for(int i = 1;i<N-1;i++){
     
-    u1[i] = -(V*dt)/dx * (u0[i]-u0[i-1]) + u0[i];
+    u1[i] = -(V*dt)/(2*dx) * (u0[i+1]-u0[i-1]) + u0[i];
     
   }
  
